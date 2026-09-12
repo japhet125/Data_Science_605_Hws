@@ -1,7 +1,8 @@
 ---
-title: "Homework"
-format: pdf_output
-editor: visual
+---
+title: "Supply Chain Vector Analysis"
+author: "Guibril Ramde"
+format: pdf
 ---
 
 ## Tasks
@@ -53,14 +54,14 @@ total_inventory
 
 ```{r}
 #If we have a small dataset
-region1 <- sum(inventory_data$Region1) - inventory_data2$Demand[1]
+region1 <- sum(inventory_data$Region1) - demand_data2$Demand[1]
 region1
-region2 <- sum(inventory_data$Region2) - inventory_data2$Demand[2]
+region2 <- sum(inventory_data$Region2) - demand_data2$Demand[2]
 region2
-region3 <- sum(inventory_data$Region3) - inventory_data2$Demand[3]
+region3 <- sum(inventory_data$Region3) - demand_data2$Demand[3]
 region3
 #A large dataset we will use this R function for vector
-surplus_shortage <- total_inventory - inventory_data2$Demand
+surplus_shortage <- total_inventory - demand_data2$Demand
 surplus_shortage
 
 ```
@@ -128,7 +129,7 @@ names(region_total)[which.max(region_total)]
 region_summary <- data.frame(
   Region = c("Region1", "Region2", "Region3"),
   Inventory = total_inventory,
-  Demand = inventory_data2$Demand
+  Demand = demand_data2$Demand
 )
 
 region_summary_long <- region_summary %>%
@@ -200,16 +201,14 @@ A =
 2 & 1 & 0 \\
 0 & 1 & 2 
 \end{bmatrix}
-$$
-$$
+$$ $$
 \mathbf{x} = 
 \begin{bmatrix}
 x \\
 y \\
 z
 \end{bmatrix}
-$$
-$$
+$$ $$
 b = 
 \begin{bmatrix}
 18 \\
@@ -235,9 +234,9 @@ b <- c(18,26,22)
 b
 
 #Solve for the unknown vector
-solution <- solve(A, b)
-solution
-det(A)
+#solution <- solve(A, b)
+#solution
+#det(A)
 ```
 
 Solving x, y, z using R result to error due to the solution not having singular value but multiple values,
@@ -260,11 +259,11 @@ Solving x, y, z using R result to error due to the solution not having singular 
 
     0x+y+2z=22
 
-    --------------
+    ------------------------------------------------------------------------
 
     3x+3y+3z=66
 
-    -------------
+    ------------------------------------------------------------------------
 
     3(x+y+z)=66 =====\> (x+y+z)= 66/3 ====\> x+y+z=22
 
