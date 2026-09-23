@@ -1,8 +1,9 @@
 ---
 title: "Social Network Influence Analysis"
 author: "Guibril Ramde"
-format: html
-editor: visual
+format:
+  html: default
+  pdf: default
 ---
 
 ## Week 3 Assignment
@@ -14,7 +15,7 @@ editor: visual
 ```{r}
 library(tidyverse)
 
-network_data <- read.csv("network.csv")
+network_data <- read.csv("https://raw.githubusercontent.com/japhet125/Data_Science_605_Hws/refs/heads/main/network.csv")
 network_data
 ```
 
@@ -121,7 +122,7 @@ The eigenpair satisfies the relationship Av = $\lambda$v, where A is the adjacen
 # direct connections
 direct_connections <- rowSums(adj_matrix)
 
-esults <- data.frame(
+results <- data.frame(
   User = user_labels,
   Direct_Connections = direct_connections,
   Eigenvector_Score = abs(v)
