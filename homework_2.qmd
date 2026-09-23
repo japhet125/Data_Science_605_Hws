@@ -1,0 +1,145 @@
+---
+title: "Social Network Influence Analysis"
+author: "Guibril Ramde"
+format: html
+editor: visual
+---
+
+## Week 3 Assignment
+
+**##Part A**
+
+1.  **Import the dataset**
+
+```{r}
+library(tidyverse)
+
+network_data <- read.csv("network.csv")
+network_data
+```
+
+2.  **Create a labeled network visualization that displays all users and their connections. Include node labels and ensure the graph is readable.**
+
+```{r}
+#Dimensions
+dim(network_data)
+#Separate user labels from numerical network values
+user_labels <- network_data$User
+user_labels
+adj_matrix <- as.matrix(network_data[, -1])
+adj_matrix
+
+rownames(adj_matrix) <- user_labels
+
+
+```
+
+**##Performing the check**
+
+```{r}
+# Check if the adj matrix is a square
+dim(adj_matrix)
+nrow(adj_matrix) == ncol(adj_matrix)
+## We get 6x6 and it return True, therefor the adj matrix is a square
+
+# Check the diagonal
+diag(adj_matrix)
+
+# Check whether all diagonal values are zero
+all(diag(adj_matrix) == 0)
+
+# Check whether the matrix is symmetric
+isSymmetric(adj_matrix)
+# Check row and cols labels
+rownames(adj_matrix)
+colnames(adj_matrix)
+
+# Check that row and col s name match
+identical(rownames(adj_matrix), colnames(adj_matrix))
+```
+
+**##Visualization**
+
+```{r}
+#install.packages("igraph")
+library(igraph)
+network_graph <- graph_from_adjacency_matrix(
+  adj_matrix,
+  mode = "undirected",
+  diag = FALSE
+)
+network_graph
+
+plot(
+  network_graph,
+  vertex.label = V(network_graph)$name,
+  main = "Social Media Network Analysis"
+)
+```
+
+**##Interpretation of the graph**
+
+Based on the graph, User2 and User3 each have four direct connections, which is the highest number of direct connections in the network. Therefore, based only on degree, they are tied. However, counting connections alone does not consider the importance of the users they are connected to. In Part B, eigenvector analysis will be used to compare their structural influence in the network.
+
+# **Part B** Eigen Analysis
+
+## 1. Compute eigenvalues
+
+```{r}
+
+eigen_result <- eigen(adj_matrix)
+
+eigen_result$values
+eigen_result$vectors
+
+# the dominant eigen value
+dominant_index <- which.max(abs(eigen_result$values))
+dominant_index
+
+dominant_eigenvalue <- eigen_result$values[dominant_index]
+dominant_eigenvalue
+
+v <- eigen_result$vectors[, dominant_index]
+v
+# Check for dominant eigen value
+all.equal(
+ as.vector(adj_matrix %*% v),
+ as.vector(dominant_eigenvalue * v)
+)
+# The most influential user
+abs(v)
+user_labels[which.max(abs(v))]
+
+
+```
+
+**##Interpretation**
+
+The eigenpair satisfies the relationship Av = $\lambda$v, where A is the adjacency matrix, $\lambda$=3.1691946 is the dominant eigenvalue, and v is its corresponding eigenvector. The `all.equal()` result returns `TRUE`, confirming numerically that Av ≈ $\lambda$v.
+
+```{r}
+# direct connections
+direct_connections <- rowSums(adj_matrix)
+
+esults <- data.frame(
+  User = user_labels,
+  Direct_Connections = direct_connections,
+  Eigenvector_Score = abs(v)
+)
+
+results[order(-results$Eigenvector_Score), ]
+```
+
+**#Interpretation and Analysis**
+
+The dominant eigenvalue is approximately 3.1692. Using the corresponding eigenvector, the largest absolute component is approximately 0.5090 and belongs to User3. User2 has a slightly lower score of approximately 0.4825. Although User2 and User3 are tied with four direct connections each, User3 has the highest eigenvector-centrality score. Therefore, User3 has the greatest structural influence according to this network analysis.
+
+\#**Part C: Business recommendation**
+
+Based on the network analysis, User3 should be considered a priority candidate for the marketing campaign. User2 and User3 both have four direct connections, but User3 has the highest eigenvector-centrality score, approximately 0.509, while User2 has a score of approximately 0.482. This shows why counting connections alone is not enough. Eigenvector centrality also considers the structural importance of the users to whom each user is connected.
+
+Eigenvectors are useful in this analysis because the components of the dominant eigenvector provide relative measures of structural influence within the network. A user connected to other important users can receive a higher score even if another user has the same number of direct connections. In this network, that distinction helps separate User3 from User2 even though their direct connection counts are equal.
+
+However, network structure alone is not enough to determine the best person for a marketing campaign. The analysis does not include information such as follower count, engagement rate, audience demographics, geographic reach, brand relevance, previous campaign performance, authenticity, or cost. These factors could change the final business decision.
+
+Therefore, User3 can be prioritized as the strongest candidate based on network structure, but additional marketing information should be collected before making the final decision. User2 may also be worth considering because User2 has the same number of direct connections and the second-highest eigenvector-centrality score.

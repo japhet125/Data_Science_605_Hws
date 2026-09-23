@@ -1,9 +1,6 @@
----
----
-title: "Supply Chain Vector Analysis"
-author: "Guibril Ramde"
-format: pdf
----
+------------------------------------------------------------------------
+
+title: "Supply Chain Vector Analysis" author: "Guibril Ramde" format: pdf ---
 
 ## Tasks
 
