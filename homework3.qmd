@@ -1,0 +1,235 @@
+---
+title: "Discrete & Continuous Probability Distributions"
+author: "Guibril Ramde"
+format:
+  html: default
+  pdf: default
+---
+
+## Homework 3
+
+A hospital wants to improve staffing by understanding patient arrivals and treatment times.
+
+```{r}
+#download Arrivals csv file and Treatment csv file
+
+
+library(tidyverse)
+
+arrivals_data <- read.csv("arrivals.csv")
+arrivals_data
+treatments_data <- read_csv("treatment_times.csv")
+treatments_data
+```
+
+**##Part A: Patient Arrivals**
+
+1.  **Compute descriptive statistics**
+
+```{r}
+#Summary of data
+summary(arrivals_data)
+
+
+```
+
+```{r}
+
+#descriptive  statistics
+arrival_mean <- mean(arrivals_data$Patients)
+arrival_mean
+arrival_sd <- sd(arrivals_data$Patients)
+arrival_sd
+arrival_var <- var(arrivals_data$Patients)
+arrival_var
+
+```
+
+2.  **Determine whether a Poisson distribution is appropriate.**
+
+    **##Interpretation:**
+
+    The mean number of arrivals is 24.1 and the variance is approximately 31.46. For a Poisson distribution, the mean and variance should be approximately equal. Although the variance is somewhat larger than the mean, the values are reasonably close, so a Poisson distribution may be an appropriate model for the patient arrivals.
+
+3.  **Estimate the arrival rate parameter.**
+
+    ```{r}
+    lambda <- mean(arrivals_data$Patients)
+    lambda
+    ```
+
+##Interpretation:
+
+The estimated arrival rate is 24.1 patients per hour, meaning the hospital receives approximately 24 patients per hour on average.
+
+4.  **Calculate the probability of more than 30 arrivals in an hour.**
+
+    ```{r}
+    proportion_arr <- mean(arrivals_data$Patients > 30)
+    proportion_arr
+
+    prob_for_more_than_30 <- ppois(30, lambda = lambda, lower.tail = FALSE )
+    prob_for_more_than_30
+    ```
+
+**##Interpretation:**
+
+In the observed data, 15% of the hours had more than 30 patient arrivals. Using a Poisson distribution with an estimated arrival rate of 24.1 patients per hour, the probability of having more than 30 arrivals in an hour is approximately 10%. Therefore, according to the Poisson model, there is about a 10% chance that more than 30 patients will arrive in a given hour.
+
+**##Part B: Treatment Times**
+
+```{r}
+treatments_data
+summary(treatments_data)
+
+```
+
+1.  **Visualize the distribution.**
+
+    ```{r}
+    hist(treatments_data$TreatmentMinutes,
+         main = "Distribution of Treatment Times",
+         xlab = "Treatment in Minutes",
+         ylab = "Frequency")
+    ```
+
+##Interpretation:
+
+The histogram shows that treatment times are concentrated around 30–40 minutes. The distribution is not perfectly bell-shaped, but it appears roughly symmetric with no obvious extreme outliers. Since the sample contains only 15 observations, it is difficult to determine normality from the histogram alone.
+
+2.  **Estimate mean and standard deviation**
+
+    ```{r}
+    # Treatment descriptive statistics
+    treatment_mean <- mean(treatments_data$TreatmentMinutes)
+    treatment_mean
+    treatment_sd <- sd(treatments_data$TreatmentMinutes)
+
+    treatment_sd
+    treatment_var <- var(treatments_data$TreatmentMinutes)
+    treatment_var
+    ```
+
+3.  **Determine whether a Normal distribution is reasonable.**
+
+```{r}
+qqnorm(treatments_data$TreatmentMinutes,
+       main = "Q-Q Plot of Patient Treatment Times")
+qqline(treatments_data$TreatmentMinutes)
+```
+
+##Interpretation:
+
+Based on the Q-Q plot, a Normal distribution appears to be reasonable for the treatment times. Most of the data points fall close to the reference line, with only small deviations at the tails. Therefore, the treatment times can reasonably be modeled using a Normal distribution.
+
+4.  **Calculate the probability that treatment exceeds 45 minutes.**
+
+```{r}
+prob_that_trea_45 <- pnorm(45, mean = 36.06667, sd =  11.02897, lower.tail = FALSE )
+prob_that_trea_45
+```
+
+##Interpretation:
+
+Based on the Normal distribution model, the probability that a patient's treatment time exceeds 45 minutes is approximately 20.9%. This means that about 21% of treatments are expected to take longer than 45 minutes. This is consistent with the histogram, where most treatment times are concentrated around 30–40 minutes.
+
+**#Part C: Simulation**
+
+1.  Simulate one month of arrivals.
+
+    ```{r}
+    n = 720
+    # Simulation
+
+    set.seed(12345)
+
+    # Simulate g
+    simulated_arrival <- rpois(
+      n = 720,
+      
+      lambda = 24.1
+    )
+
+    simulated_arrival
+
+    arrival_table <- data.frame(
+      Hour = 1:720,
+      Patients = simulated_arrival
+    )
+
+    head(arrival_table, 10)
+    ```
+
+2.  Estimate expected daily demand.
+
+    ```{r}
+    # Daily arrivals
+    daily_arrivals <- numeric(30)
+
+    for (day in 1:30) {
+
+      start_hour <- (day - 1) * 24 + 1
+      end_hour <- day * 24
+
+      day_arrival <- sum(simulated_arrival[start_hour:end_hour])
+
+      daily_arrivals[day] <- day_arrival
+    }
+
+    daily_arrivals
+
+    the_expected_daily_demand <- mean(daily_arrivals)
+    the_expected_daily_demand
+    # Theoretical expected daily demand
+    expected_daily <- lambda * 24
+
+    # Simulated average daily demand
+    simulated_daily <- mean(daily_arrivals)
+
+    expected_daily
+    simulated_daily
+
+    ```
+
+    **##Interpretation:**
+
+    Based on the Poisson model, the expected daily patient demand is approximately 578 patients. The simulation estimates the average daily demand using 30 days of simulated arrivals. The simulated average should be close to the theoretical expected value, although small differences may occur due to random variation.
+
+3.  Recommend staffing improvements.
+
+    ```{r}
+    # Maximum daily arrivals
+    max(daily_arrivals)
+    # Minimum daily arrivals
+    min(daily_arrivals)
+    # Standard deviation of daily arrivals
+    sd(daily_arrivals)
+
+    # Estimate daily treatment workload in hours
+    daily_treatment_hours <- daily_arrivals * treatment_mean / 60
+
+    # Descriptive statistics
+    summary(daily_treatment_hours)
+
+    # Average daily treatment workload
+    mean(daily_treatment_hours)
+
+    # Maximum daily treatment workload
+    max(daily_treatment_hours)
+    ```
+
+**##Interpretation:**
+
+Based on the simulation results, the hospital is expected to receive approximately 578 patients per day. However, daily arrivals vary, with a minimum of 548 patients and a maximum of 636 patients. The standard deviation of approximately 23.89 patients shows that demand changes from day to day.
+
+Based on these results, the hospital could improve staffing by:
+
+1.  Planning staffing around the expected daily demand while considering possible fluctuations.
+
+2.  Maintaining additional staff capacity during high-demand periods to reduce patient waiting times.
+
+3.  Considering average treatment duration when estimating staffing needs, rather than relying only on patient arrival counts.
+
+4.  Monitoring hourly arrival patterns to identify peak periods and adjust staff schedules accordingly.
+
+The estimated daily treatment workload can also help the hospital understand how much treatment time may be required. However, additional information about staff availability, patient severity, and treatment resources would be needed to determine the exact number of staff required.
