@@ -1,0 +1,163 @@
+---
+title: "Investment Portfolio Risk Analysis"
+author: "Ramde Guibril"
+format:
+  html: default
+  pdf: default
+---
+
+## **Investment Portfolio Risk Analysis**
+
+## **Topics**
+
+-   Important Distributions
+
+-   Expected Value
+
+-   Variance
+
+**##Part A: Statistical Analysis**
+
+```{r}
+library(dplyr)
+library(tidyverse)
+data_load <- read.csv("portfolio_returns.csv")
+data_load
+```
+
+```{r}
+summary(data_load)
+```
+
+```{r}
+portfolio_stats <- data_load |>
+  group_by(Portfolio) |>
+  summarise(
+    expected_Return = sum(Return * Probability),
+    Variance = sum(Probability * (Return - sum(Return * Probability))^2),
+    Standard_deviation = sqrt(Variance)
+  )
+
+portfolio_stats
+```
+
+**##Interpretation:**
+
+Based on the statistical results, Portfolio A presents the highest financial risk compared to the other two portfolios because it has the highest standard deviation of approximately 6.95%. However, it also offers the highest expected return of 7.5%. Portfolio B has a moderate level of risk and an expected return of 6%, while Portfolio C has the lowest risk, with a standard deviation of approximately 2.37% and an expected return of 5.6%. These results suggest that higher expected returns are associated with greater risk among the three portfolios
+
+**##Part B: Monte Carlo Simulation**
+
+1.  Simulate 10,000 return for each porfolio
+
+    ```{r}
+    portfolio_A <- data_load |> filter(Portfolio == "A")
+    portfolio_B <- data_load |> filter(Portfolio == "B")
+    portfolio_C <- data_load |> filter(Portfolio == "C")
+
+    portfolio_A
+    portfolio_B
+    portfolio_C
+    ```
+
+```{r}
+set.seed(100000)
+
+n <- 10000
+portfolio_A_R <- sample(portfolio_A$Return, size = n, replace = TRUE, prob = portfolio_A$Probability)
+head(portfolio_A_R)
+
+portfolio_B_R <- sample(portfolio_B$Return, size = n, replace = TRUE, prob = portfolio_B$Probability)
+head(portfolio_B_R)
+
+portfolio_C_R <- sample(portfolio_C$Return, size = n, replace = TRUE, prob = portfolio_C$Probability)
+head(portfolio_C_R)
+
+
+
+
+
+
+```
+
+2.  Compare the return distributions
+
+    ```{r}
+    library(ggplot2)
+    simulated_data <- data.frame(Return = c(portfolio_A_R, portfolio_B_R, portfolio_C_R),
+                                 Portfolio = rep(c("A", "B", "C"), each = n)
+                                 )
+    ggplot(simulated_data, aes(x = Return)) +
+      geom_histogram(binwidth = 0.01, fill = "steelblue",
+                     color = "white") +
+      facet_wrap(~Portfolio) +
+      labs(title = "Monte Carlo Simulation of Portfolio Returns",
+           x = "Simulated Return",
+           y = "Frequency") + theme_minimal()
+    ```
+
+**##Interpretation:**
+
+Based on the Monte Carlo simulation, the three portfolios show different return distributions. Portfolio A has a wider spread of possible returns, ranging from -5% to 15%, indicating greater variability and financial risk. Portfolio B has a smaller range of returns, from -2% to 10%, while Portfolio C has the narrowest range, from -1% to 7%. Portfolio C's return of 7% occurs approximately 6,000 times out of 10,000 simulations because it has a probability of 60%. Overall, Portfolio A shows the highest variability, while Portfolio C demonstrates the most stable returns.
+
+3.  Estimate the probability of a loss
+
+```{r}
+loss_A <- mean(portfolio_A_R < 0)
+loss_B <- mean(portfolio_B_R < 0)
+loss_C <- mean(portfolio_C_R < 0)
+
+loss_A
+loss_B
+loss_C
+```
+
+```{r}
+simulated_data |>
+  group_by(Portfolio) |>
+  summarise(
+    Mean_Return = mean(Return),
+    Variance = var(Return),
+    Standard_deviation = sd(Return),
+    Probabilty_Loss = mean(Return < 0)
+  )
+```
+
+**##Interpretation:**
+
+Based on the Monte Carlo simulation, Portfolio A has the highest estimated probability of a loss at 20.84%, followed by Portfolio B at 20.15%. Portfolio C has the lowest estimated probability of a loss at 9.87%. These results are close to the theoretical probabilities of 20%, 20%, and 10%, respectively. The small differences are due to random variation in the simulation. Overall, Portfolio C has the lowest probability of experiencing a negative return, while Portfolio A and Portfolio B have similar probabilities of loss. However, Portfolio A has a larger potential loss of 5%, compared to 2% for Portfolio B.
+
+**Part C: Investment Recommendation**
+
+Prepare a recommendation for:
+
+-   Conservative investors
+
+    Portfolio C — Lower risk
+
+    Expected return: 5,6% and Standard deviation: 2.37%
+
+    Best for investors who prioritize stability and minimizing potential losses over maximizing returns
+
+-   Moderate investors
+
+    Portfolio B — Balanced risk and return
+
+    Expected return: 6.0% and Standard deviation: 4.38%
+
+    Best for investors willing to accept moderate variability in exchange for hihgher expected return
+
+-   Aggressive investors
+
+    Portfolio A — Higher risk and return
+
+    Expected return: 7.5% Standard deviation: 6.95%
+
+    Best suited for investors seeking higher expected returns who can tolerate larger fluctuations and potential losses.
+
+**##Interpretation:**
+
+Based on the statistical analysis and Monte Carlo simulation, I would recommend Portfolio C for conservative investors because it has the lowest standard deviation and the lowest probability of a loss. Although its expected return is lower than the other portfolios, it provides greater stability.
+
+For moderate investors, I would recommend Portfolio B because it offers a balance between risk and expected return. Its expected return of 6% is slightly higher than Portfolio C, but it also carries greater risk.
+
+For aggressive investors, I would recommend Portfolio A because it offers the highest expected return of 7.5%. However, it also has the highest standard deviation and the largest potential loss among the three portfolios. Therefore, it is more suitable for investors who are willing to accept higher risk in pursuit of higher returns.
